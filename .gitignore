@@ -1,0 +1,68 @@
+# Dependencies
+frontend/node_modules/
+
+# Frontend build output
+frontend/dist/
+
+# Python caches and local runtime state
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+.app-browser-profile/
+backend/runtime/
+
+# Local test and investigation artifacts
+data_collect_test/
+test-reports/
+frontend/output/playwright/
+.tmp_diff.txt
+__MACOSX/
+
+# Local tool config
+.claude/
+.agents/
+.agents/skills/speckit-git-*/
+
+# C++ build output
+hal/build/
+bin/
+obj/
+out/
+*.o
+*.a
+*.so
+*.exe
+*.dll
+
+# Logs
+*.log
+*.tmp
+*.swp
+
+# OS/editor metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local vendor binaries; install these on the deployment machine.
+backend/vendor/jodell/*.dll
+backend/vendor/jodell/*.lib
+hal/vendor/
+
+# Environment files
+.env
+.env.*
+
+# Hardware reference files
+硬件指南/
+
+# Nested project checkout
+cc_data_collection/

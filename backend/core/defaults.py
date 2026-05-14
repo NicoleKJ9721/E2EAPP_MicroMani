@@ -1,0 +1,271 @@
+from __future__ import annotations
+
+from copy import deepcopy
+from typing import Any
+
+DEFAULT_MOTION_PROFILE: dict[str, Any] = {
+    "translation": {
+        "startSpeed": 100,
+        "maxSpeed": 1000,
+        "accTimeSec": 0.05,
+        "decTimeSec": 0.05,
+    },
+    "rotation": {
+        "startSpeed": 0.3,
+        "maxSpeed": 3,
+        "accTimeSec": 0.02,
+        "decTimeSec": 0.02,
+    },
+}
+
+ICF_TELEOP_STRATEGY_VERSION = "icf_omega7_qserialtest_limits_20260513"
+ICF_WORK_ORIGIN_VERSION = "icf_work_origin_20260513"
+
+ICF_CAMERA_DEFAULTS: dict[str, Any] = {
+    "global": "AR0234 / index 1",
+    "globalIdentity": "USB\\VID_1D6B&PID_0102&MI_00\\6&1E9A8698&0&0000",
+    "wristLeft": "IMX258 / index 2",
+    "wristLeftIdentity": "USB\\VID_0EDC&PID_3080&MI_00\\7&38B4EA25&0&0000",
+    "wristRight": "IMX258 / index 0",
+    "wristRightIdentity": "USB\\VID_0EDC&PID_3080&MI_00\\6&1BBFDB86&0&0000",
+    "previewResolution": "640x480",
+    "globalResolution": "640x480",
+    "wristLeftResolution": "640x480",
+    "wristRightResolution": "640x480",
+    "fps": 30,
+    "tuning": {
+        "global": {
+            "autoExposure": False,
+            "exposure": -5.5,
+            "gain": 0.0,
+            "autoWhiteBalance": False,
+        },
+        "wrist_left": {
+            "autoExposure": False,
+            "exposure": -6.0,
+            "gain": 0.0,
+            "autoWhiteBalance": False,
+        },
+        "wrist_right": {
+            "autoExposure": False,
+            "exposure": -6.0,
+            "gain": 0.0,
+            "autoWhiteBalance": False,
+        },
+    },
+}
+
+DEFAULT_SOFT_LIMITS: dict[str, Any] = {
+    "x": {"min": -40000000, "max": 40000000},
+    "y": {"min": -20000000, "max": 20000000},
+    "z": {"min": -20000000, "max": 20000000},
+    "roll": {"min": -120000, "max": 120000},
+    "pitch": {"min": -80000, "max": 80000},
+    "yaw": {"min": -60000, "max": 60000},
+}
+
+ICF_TELEOP_SOFT_LIMIT_MIN = [-200000000.0] * 6
+ICF_TELEOP_SOFT_LIMIT_MAX = [200000000.0] * 6
+
+ICF_TELEOP_DEFAULTS: dict[str, Any] = {
+    "strategyVersion": ICF_TELEOP_STRATEGY_VERSION,
+    "swapHands": True,
+    "stabilityMode": "free",
+    "leftTranslationScale": 0.30,
+    "rightTranslationScale": 0.30,
+    "leftRotationScale": 0.10,
+    "rightRotationScale": 0.05,
+    "leftAxisOutputScale": [0.20, 0.20, 1.00, 1.00, 0.50, 0.10],
+    "rightAxisOutputScale": [0.20, 0.20, 1.00, 1.00, 0.50, 0.10],
+    "translationDeadzone": 0.00002,
+    "rotationDeadzone": 0.05,
+    "incrementalTranslationMinEffectiveDelta": 0.00005,
+    "incrementalTranslationReverseDeadzone": 0.00010,
+    "translationStepLimitPulse": 4000,
+    "rotationStepLimitPulse": 1250,
+    "translationStepUm": 5000.0,
+    "rotationStepDeg": 0.2,
+    "translationStartVelocityUmS": 300.0,
+    "translationMaxVelocityUmS": 4000.0,
+    "rotationStartVelocityDegS": 0.25,
+    "rotationMaxVelocityDegS": 3.0,
+    "motionProfileAccSec": 0.05,
+    "motionProfileDecSec": 0.05,
+    "leftEnabledAxes": [True, True, True, True, True, True],
+    "rightEnabledAxes": [True, True, True, True, True, True],
+    "leftSoftLimitMin": list(ICF_TELEOP_SOFT_LIMIT_MIN),
+    "leftSoftLimitMax": list(ICF_TELEOP_SOFT_LIMIT_MAX),
+    "rightSoftLimitMin": list(ICF_TELEOP_SOFT_LIMIT_MIN),
+    "rightSoftLimitMax": list(ICF_TELEOP_SOFT_LIMIT_MAX),
+}
+
+ICF_WORK_ORIGIN_DEFAULTS: dict[str, Any] = {
+    "valid": True,
+    "leftValid": True,
+    "rightValid": True,
+    "leftPulse": [100000.0, 0.0, -35179.0, 64833.0, 64839.0, -2947.0],
+    "rightPulse": [-233.0, -19221.0, 593101.0, 4427.0, -81110.0, -180.0],
+    "updatedAt": 1778586070000,
+}
+
+DEFAULT_CONFIG: dict[str, Any] = {
+    "hal": {
+        "baseUrl": "http://localhost:8091",
+        "wsUrl": "ws://localhost:8091/ws/telemetry",
+        "axisCount": 12,
+        "apiConfirmed": False,
+        "mode": "real",
+        "timeoutMs": 5000,
+        "ltdmcDllPath": "F:/E2EAPP_MicroMani/hal/vendor/leishine/bin/LTDMC.dll",
+        "ltdmcLibPath": "F:/E2EAPP_MicroMani/hal/vendor/leishine/lib/x64/LTDMC.lib",
+        "dhdDllPath": "F:/E2EAPP_MicroMani/hal/vendor/force_dimension/bin/dhd64.dll",
+    },
+    "cameras": deepcopy(ICF_CAMERA_DEFAULTS),
+    "force": {
+        "leftIp": "Dev5/ai0:5",
+        "rightIp": "Dev3/ai0:5",
+        "port": 49152,
+        "sampleHz": 200,
+        "recordWindowSamples": 0,
+        "tareSamples": 0,
+        "certificateConfirmed": False,
+        "calibrationEnabled": True,
+        "leftCalibrationPath": "C:/Program Files (x86)/ATI Industrial Automation/ATIDAQFT.NET/FT32918.cal",
+        "rightCalibrationPath": "C:/Program Files (x86)/ATI Industrial Automation/ATIDAQFT.NET/FT38799.cal",
+        "inputMode": "DIFF",
+        "voltageMin": -10,
+        "voltageMax": 10,
+        "lowpassEnabled": True,
+        "lowpassCutoffHz": 10,
+        "swapHands": False,
+    },
+    "motion": {
+        "leftCardNo": 1,
+        "rightCardNo": 0,
+        "motionThreadHz": 1000,
+        "jogStepUm": 50,
+        "jogStepDeg": 0.05,
+        "yawSoftLimitDeg": 60000,
+        "positionSource": "dmc_get_position",
+        "workOriginStrategyVersion": ICF_WORK_ORIGIN_VERSION,
+        "origin": deepcopy(ICF_WORK_ORIGIN_DEFAULTS),
+        "homeOnStartup": {
+            "enabled": False,
+            "mode": "work_origin",
+        },
+        "leftProfile": deepcopy(DEFAULT_MOTION_PROFILE),
+        "rightProfile": deepcopy(DEFAULT_MOTION_PROFILE),
+        "leftSoftLimits": deepcopy(DEFAULT_SOFT_LIMITS),
+        "rightSoftLimits": deepcopy(DEFAULT_SOFT_LIMITS),
+    },
+    "gripper": {
+        "leftPort": "COM8",
+        "rightPort": "COM9",
+        "baudrate": 115200,
+        "leftSlaveId": 10,
+        "rightSlaveId": 9,
+        "strokeMm": 26,
+        "targetLeftMm": 13,
+        "targetRightMm": 13,
+        "leftEnabled": False,
+        "rightEnabled": False,
+        "commandForceLimitN": 8,
+        "commandSpeed": 10,
+        "commandTorque": 1,
+        "sampleMode": "dual_worker",
+        "sampleHz": 30,
+        "sampleStaleMs": 500,
+        "sampleEnableOnNegative": True,
+        "workerCommandTimeoutSec": 2.0,
+        "forceFeedbackAvailable": False,
+        "jodellDllPath": (
+            "F:/E2EAPP_MicroMani/backend/vendor/jodell/jodellTool.dll"
+        ),
+    },
+    "safety": {
+        "fxyWarnN": 2,
+        "fxyStopN": 4,
+        "fzWarnN": 3,
+        "fzStopN": 5,
+        "momentWarnNm": 0.02,
+        "momentStopNm": 0.04,
+        "yawSoftLimitDeg": 60000,
+        "watchdogMs": 50,
+    },
+    "zmq": {
+        "observationPush": "tcp://127.0.0.1:8082",
+        "actionPull": "tcp://127.0.0.1:8083",
+        "timeoutMs": 50,
+    },
+    "storage": {
+        "datasetRoot": "~/.appstation/datasets",
+        "recordFps": 30,
+        "videoCrf": 23,
+        "pushToHub": False,
+    },
+    "auto": {
+        "allowHardwareDispatch": False,
+        "translationStepUm": 200,
+        "rotationStepDeg": 0.2,
+        "translationVelocityUmS": 1000,
+        "rotationVelocityDegS": 0.5,
+    },
+    "picoVision": {
+        "ip": "10.90.132.174",
+        "adbPort": 5555,
+        "videoPort": 12345,
+        "commandPort": 13579,
+        "gateway": "10.90.0.1",
+        "ifIndex": 13,
+        "rotation": "ccw90",
+        "cameraSource": "global",
+        "scriptsDir": "F:/ICFNewProject/PicoWirelessTools",
+        "senderBuildDir": "F:/ICFNewProject/QSerialTest3.0/QSerialTest/QSerialTest/tools/pico_mono_sender/build",
+    },
+    "teleop": {
+        "coarse": 1,
+        "medium": 0.35,
+        "fine": 0.08,
+        "inputIntervalMs": 10,
+        "commandIntervalMs": 10,
+        "leftOpenId": 0,
+        "rightOpenId": 1,
+        "leftConnected": False,
+        "rightConnected": False,
+        "leftGravityCompensation": True,
+        "rightGravityCompensation": True,
+        "leftForceFeedback": False,
+        "rightForceFeedback": False,
+        **deepcopy(ICF_TELEOP_DEFAULTS),
+        "requireClutch": False,
+        "stabilityMode": "free",
+        "tcpFallbackPort": 12345,
+        "gripperTeleop": {
+            "enabled": False,
+            "loopHz": 100,
+            "leftGapMinMm": 0.0,
+            "leftGapMaxMm": 25.0,
+            "rightGapMinMm": 0.0,
+            "rightGapMaxMm": 25.0,
+            "openThreshold": 0.30,
+            "closeThreshold": 0.70,
+            "gripSpeed": 128,
+            "gripTorque": 192,
+            "releaseSpeed": 255,
+            "releaseTorque": 64,
+            "objectDetectMargin": 10,
+            "buttonFallback": True,
+            "diagLog": False,
+        },
+    },
+    "wsl": {
+        "distro": "Ubuntu-22.04",
+        "condaEnv": "lerobot",
+        "pythonPath": "/home/user/miniconda3/envs/lerobot/bin/python",
+        "pendingWindowsValidation": True,
+    },
+}
+
+
+def default_config() -> dict[str, Any]:
+    return deepcopy(DEFAULT_CONFIG)
